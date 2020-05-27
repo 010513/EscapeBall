@@ -19,16 +19,20 @@ export default class Game extends cc.Component {
     @property(cc.PhysicsBoxCollider)
     downBian: cc.PhysicsBoxCollider = null;
 
+    
+
     // LIFE-CYCLE CALLBACKS:
 
     onLoad () {
+        //关闭多点触碰，否则手指画线时容易画到乱七八糟
+        cc.macro.ENABLE_MULTI_TOUCH = false;
         //开启物理引擎
         let manager = cc.director.getPhysicsManager();
         manager.enabled = true;
 
-        //绘制物理信息
-        manager.debugDrawFlags = cc.PhysicsManager.DrawBits.e_jointBit |
-        cc.PhysicsManager.DrawBits.e_shapeBit;
+        // //绘制物理信息
+        // manager.debugDrawFlags = cc.PhysicsManager.DrawBits.e_jointBit |
+        // cc.PhysicsManager.DrawBits.e_shapeBit;
 
         //注册
         this.node.on(cc.Node.EventType.TOUCH_START, this.touch_start, this);

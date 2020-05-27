@@ -29,11 +29,17 @@ var MyPhysicsCollider = cc.Class({
 
             var shape = new b2.PolygonShape();
 
+            //防止刷走当前画面图形
+            if(posBegin.equals(posEnd)){
+                continue;
+            }
+
             if (shape) {
                 shape.SetAsBox(this.lineWidth / 2 / 32, linelen / 2 / 32, new b2.Vec2(midPos.x / 32, midPos.y / 32), angle);
     
                 shapes.push(shape);
             }
+
         }
 
         return shapes;

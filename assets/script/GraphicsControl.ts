@@ -27,10 +27,12 @@ export default class GraphicsControl extends cc.Component {
     onLoad () {
         this.node.width = cc.winSize.width;
         this.node.height = cc.winSize.height;
-        this.graphics = this.getComponent(cc.Graphics);
+        this.node.position = cc.v3(0,0);
     }
 
     start () {
+        
+        this.graphics = this.getComponent(cc.Graphics);
         this.onTouch();
     }
 
@@ -67,8 +69,9 @@ export default class GraphicsControl extends cc.Component {
         this.physicsLine.apply();
     }
 
+    //防止出现手指过粗绘制出了实体多边形
     public checkIsCanDraw(lastPoint:cc.Vec2,nowPoint:cc.Vec2):Boolean{
-        return lastPoint.sub(nowPoint).mag() >= 20;
+        return lastPoint.sub(nowPoint).mag() >= 5;
     }
 
     //---------------------------------public Func-----------------------------------------------------
@@ -82,6 +85,10 @@ export default class GraphicsControl extends cc.Component {
 
     private touch_move(event:cc.Touch){
         let pos = this.node.convertToNodeSpaceAR(event.getLocation());
+        let prePos = this.node.convertToNodeSpaceAR(event.getPreviousLocation());
+        if(!this.checkIsCanDraw(prePos,pos)){
+            return;
+        }
         this.graphics.lineTo(pos.x, pos.y);
         this.line_point.push(cc.v2(pos.x, pos.y));
         this.graphics.stroke();
