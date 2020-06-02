@@ -5,10 +5,12 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/manual/en/scripting/life-cycle-callbacks.html
 
+import BaseComponent from "../Base/BaseComponent";
+
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export default class Game extends cc.Component {
+export default class Game extends BaseComponent {
 
     @property(cc.Prefab)
     graphics: cc.Prefab = null;
@@ -18,8 +20,10 @@ export default class Game extends cc.Component {
     rightBian: cc.PhysicsBoxCollider = null;
     @property(cc.PhysicsBoxCollider)
     downBian: cc.PhysicsBoxCollider = null;
+    @property(cc.Node)
+    ball: cc.Node = null;
 
-    
+    private graphicLayer:cc.Node = null;
 
     // LIFE-CYCLE CALLBACKS:
 
@@ -30,14 +34,20 @@ export default class Game extends cc.Component {
         let manager = cc.director.getPhysicsManager();
         manager.enabled = true;
 
+        manager.debugDrawFlags =
+        cc.PhysicsManager.DrawBits.e_jointBit |
+        cc.PhysicsManager.DrawBits.e_shapeBit;
+
         // //绘制物理信息
         // manager.debugDrawFlags = cc.PhysicsManager.DrawBits.e_jointBit |
         // cc.PhysicsManager.DrawBits.e_shapeBit;
 
-        //注册
-        this.node.on(cc.Node.EventType.TOUCH_START, this.touch_start, this);
-        this.node.on(cc.Node.EventType.TOUCH_MOVE, this.touch_move, this);
-        this.node.on(cc.Node.EventType.TOUCH_END, this.touch_end, this);
+        //事件注册
+        this.onEvent("graphics_control_touch_end",this.graphic_control_touch_end,this);
+
+        this.graphicLayer = cc.find("Canvas/GraphicLayer");
+        this.ball.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
+
     }
 
     start () {
@@ -58,23 +68,15 @@ export default class Game extends cc.Component {
     // update (dt) {}
 
     //-----------------------------------private Func---------------------
-    private touch_start(event:cc.Touch){
-
-    }
-
-    private touch_move(event:cc.Touch){
-        
-    }
-
-    private touch_end(event:cc.Touch){
-         //每次画完在准备好一个绘制界面
-         this.createGraphics();
+    private graphic_control_touch_end(event:cc.Touch){
+        this.createGraphics();
+        this.ball.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
     }
 
     //--------------------------------public Func--------------------------
     public createGraphics(){
         var graphics_node = cc.instantiate(this.graphics);
         graphics_node.x = 0;
-        this.node.addChild(graphics_node);
+        this.graphicLayer.addChild(graphics_node);
     }
 }

@@ -168,7 +168,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "20c4800a-ed97-4248-8ffa-6546f2e43f6c"
     },
     "fileId": "f9uM02xMpNZZ+3kzOkukuX",
     "sync": false

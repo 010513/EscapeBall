@@ -8,12 +8,17 @@
 const {ccclass, property} = cc._decorator;
 
 import MyphysicsCollider from "./MyphysicsCollider";
+import BaseComponent from "../Base/BaseComponent";
 
 @ccclass
-export default class GraphicsControl extends cc.Component {
+export default class GraphicsControl extends BaseComponent {
 
     //@property(cc.Graphics)
     graphics: cc.Graphics = null;
+
+    //移动多少个点进行一次检测
+    @property
+    check_point_num:number = 10;
 
    // @property([cc.Vec2])
     line_point: any = [];
@@ -22,12 +27,19 @@ export default class GraphicsControl extends cc.Component {
 
     private physicsLine:MyphysicsCollider;
 
+    private items:cc.Node = null;
+
+    private curPointIdx:number = 0;
+
     // LIFE-CYCLE CALLBACKS:
 
     onLoad () {
         this.node.width = cc.winSize.width;
         this.node.height = cc.winSize.height;
         this.node.position = cc.v3(0,0);
+        this.curPointIdx = 0;
+
+        this.items = cc.find("Canvas/Item");
     }
 
     start () {
@@ -85,18 +97,62 @@ export default class GraphicsControl extends cc.Component {
 
     private touch_move(event:cc.Touch){
         let pos = this.node.convertToNodeSpaceAR(event.getLocation());
-        let prePos = this.node.convertToNodeSpaceAR(event.getPreviousLocation());
+        //let prePos = this.node.convertToNodeSpaceAR(event.getPreviousLocation());
+        let prePos = this.line_point[this.line_point.length - 1];
+        let canDraw:boolean = false;
         if(!this.checkIsCanDraw(prePos,pos)){
             return;
         }
-        this.graphics.lineTo(pos.x, pos.y);
+        
+        //获取item层次中物品，线不与物品相交
+        // for(let i = 0;i < this.items.childrenCount;i++){
+        //     let child:cc.Node = this.items.children[i];
+        //     if(child.getBoundingBoxToWorld().contains(event.getLocation())){
+        //         return;
+        //     }
+        // }
+        
         this.line_point.push(cc.v2(pos.x, pos.y));
+        for(let i = 0;i < this.items.childrenCount;i++){
+            let child:cc.Node = this.items.children[i];
+            let rect = cc.rect(child.position.x - child.width/2,child.position.y - child.height/2,child.width,child.height);
+            //if(cc.Intersection.rectPolygon(rect,this.line_point)){
+            if(cc.Intersection.lineRect(prePos,pos,rect)){
+                this.line_point.pop();
+                return;
+            }
+        }
+        // this.curPointIdx++;
+        // // //创建多边形 模拟是否与物体相交
+        // if(this.curPointIdx == this.check_point_num){
+        //     canDraw = true;
+        //     for(let i = 0;i < this.items.childrenCount;i++){
+        //         let child:cc.Node = this.items.children[i];
+        //         if(cc.Intersection.rectPolygon(child.getBoundingBox(),this.line_point)){
+        //             canDraw = false;
+        //         }
+        //     }
+        //     if(!canDraw){
+        //         for(let i = 0; i < this.curPointIdx; i++){
+        //             this.line_point.pop();
+        //         }
+        //         this.curPointIdx = 0;
+        //     }
+        //     else{
+        //         this.graphics.lineTo(pos.x, pos.y);
+        //         this.graphics.stroke();
+        //         this.curPointIdx = 0;
+        //     }
+        // }
+        this.graphics.lineTo(pos.x, pos.y);
         this.graphics.stroke();
     }
 
     private touch_end(event:cc.Touch){
         this.createRigibody();
         this.offTouch();
+        //通知游戏创建新画布，否则会出现点击第一次看不到画线问题
+        this.emitEvent("graphics_control_touch_end");
     }
     
 }
